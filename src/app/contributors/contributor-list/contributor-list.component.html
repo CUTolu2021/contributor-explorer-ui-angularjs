@@ -1,0 +1,65 @@
+<div class="container">
+  <h2>Angular Contributors Leaderboard</h2>
+
+  <div class="search-bar">
+    <input
+      type="text"
+      placeholder="Search by username, name, or bio..."
+      (input)="onSearch($event)"
+      >
+
+      <p>Sort by:</p>
+      <select (change)="onSort($any($event.target).value)">
+        @for (option of sortOptions; track option) {
+          <option [value]="option.value">
+            {{ option.label }}
+          </option>
+        }
+      </select>
+    </div>
+
+    @if (contributors$ | async; as contributors) {
+      <div>
+        @if (contributors.length === 0) {
+          <div class="no-results">
+            No contributors found matching your search term.
+          </div>
+        }
+        <ul class="contributor-list">
+          @for (c of contributors; track c; let i = $index) {
+            <li class="contributor-card">
+              <div class="rank">{{ i + 1 }}</div>
+              <div class="profile-info">
+                <img [src]="c.details?.avatar_url" alt="{{ c.login }}" class="avatar">
+                <div class="names">
+                  <a [routerLink]="['/contributor', c.login]" class="login-name">{{ c.login }}</a>
+                  @if (c.details?.name) {
+                    <p class="real-name">{{ c.details?.name }}</p>
+                  }
+                </div>
+              </div>
+              <div class="stats">
+                <div class="stat-item">
+                  <span class="label">Total Contributions</span>
+                  <span class="value contributions">{{ c.totalContributions | number }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="label">Followers</span>
+                  <span class="value">{{ c.details?.followers | number }}</span>
+                </div>
+                <div class="stat-item hidden-mobile">
+                  <span class="label">Public Repos</span>
+                  <span class="value">{{ c.details?.public_repos | number }}</span>
+                </div>
+              </div>
+            </li>
+          }
+        </ul>
+      </div>
+    } @else {
+      <div class="loading-message">
+        <p>Loading contributors... This might take a moment on the first run as we aggregate data from GitHub.</p>
+      </div>
+    }
+
+  </div>

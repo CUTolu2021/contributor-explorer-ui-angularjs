@@ -1,0 +1,62 @@
+@if (state$ | async; as state) {
+  @if (state.loading) {
+    <div class="loading-message">
+      <p>Loading contributor profile...</p>
+    </div>
+  }
+  @if (state.error) {
+    <div class="error-message">
+      <p>{{ state.error }}</p>
+      <a routerLink="/contributors" class="back-link">Go back to the list</a>
+    </div>
+  }
+  @if (state.contributor; as c) {
+    <div class="container">
+      <a (click)="goBack()" class="back-link">&larr; Back to Previous Page</a>
+      <div class="profile-header">
+        <img [src]="c.details?.avatar_url" alt="{{ c.login }}" class="profile-avatar">
+        <div class="header-text">
+          <h1>{{ c.details?.name || c.login }}</h1>
+          <p class="login-handle">{{ c.login }}</p>
+          @if (c.details?.bio) {
+            <div class="bio">{{ c.details?.bio }}</div>
+          }
+          <div class="meta-info">
+            @if (c.details?.location) {
+              <span>📍 {{ c.details.location }}</span>
+            }
+            @if (c.details?.blog) {
+              <span>🔗 <a [href]="c.details.blog" target="_blank">{{ c.details.blog }}</a></span>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card total-contributions">
+          <span class="stat-value">{{ c.totalContributions | number }}</span>
+          <span class="stat-label">Total Contributions to Angular</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">{{ c.details?.followers | number }}</span>
+          <span class="stat-label">Followers</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">{{ c.details?.public_repos | number }}</span>
+          <span class="stat-label">Public Repositories</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">{{ c.details?.public_gists | number }}</span>
+          <span class="stat-label">Public Gists</span>
+        </div>
+      </div>
+      <h2 class="section-title">Repositories Contributed To</h2>
+      <div class="repo-list">
+        @for (repo of c.reposContributedTo; track repo) {
+          <span class="repo-tag">
+            <a [routerLink]="['/repo', repo]">{{ repo }}</a>
+          </span>
+        }
+      </div>
+    </div>
+  }
+}

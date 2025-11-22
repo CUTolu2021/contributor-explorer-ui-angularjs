@@ -1,0 +1,42 @@
+@if (state$ | async; as state) {
+  @if (state.loading) {
+    <div class="loading-message">
+      <p>Loading repository details...</p>
+    </div>
+  }
+  @if (state.error) {
+    <div class="error-message">
+      <p>{{ state.error }}</p>
+      <a routerLink="/" class="back-link">Go back to the list</a>
+    </div>
+  }
+  @if (state.repoDetails; as repo) {
+    <div class="container">
+      <a (click)="goBack()" class="back-link">&larr; Back to Previous Page</a>
+      <header class="repo-header">
+        <h1>{{ repo.name }}</h1>
+        <p class="full-name">{{ repo.fullName }}</p>
+        <p class="description">{{ repo.description }}</p>
+        <div class="repo-meta">
+          <span class="meta-item">⭐ {{ repo.stargazers_count | number }} Stars</span>
+          <span class="meta-item">🍴 {{ repo.forks_count | number }} Forks</span>
+          <span class="meta-item">🐛 {{ repo.open_issues_count | number }} Open Issues</span>
+          <span class="meta-item">🌐 {{ repo.language }}</span>
+        </div>
+      </header>
+      <h2 class="section-title">Contributors ({{ repo.contributors.length }})</h2>
+      <ul class="contributor-list">
+        @for (c of repo.contributors; track c; let i = $index) {
+          <li class="contributor-item">
+            <div class="rank">{{ i + 1 }}</div>
+            <img [src]="c.avatar_url" alt="{{ c.login }}" class="avatar">
+            <div class="info">
+              <a [routerLink]="['/contributor', c.login]" class="login-name">{{ c.login }}</a>
+              <span class="contribution-count">{{ c.contributions | number }} contributions</span>
+            </div>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+}

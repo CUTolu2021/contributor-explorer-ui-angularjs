@@ -1,0 +1,14 @@
+export interface RepositoryDetails {
+  name: string;
+  fullName: string;
+  description: string;
+  stargazers_count: number;
+  forks_count: number;
+  open_issues_count: number;
+  language: string;
+  contributors: { 
+    login: string; 
+    contributions: number; 
+    avatar_url: string; 
+  }[]; 
+}
