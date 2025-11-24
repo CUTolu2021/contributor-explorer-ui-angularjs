@@ -47,7 +47,6 @@ export class LoginComponent {
     
     this.authService.login().subscribe({
       next: () => {
-        // Redirect to the main contributors list on success
         this.router.navigate(['/contributors']); 
       },
       error: () => {

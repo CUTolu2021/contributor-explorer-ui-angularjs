@@ -5,8 +5,6 @@ import { Observable, BehaviorSubject, combineLatest, map, catchError, finalize, 
 import { GithubApiService } from '../../core/github-api.service';
 import { Contributor } from '../../core/interface/contributor';
 
-
-// Define the valid sort keys for type safety
 type SortKey = 'totalContributions' | 'followers' | 'public_repos' | 'public_gists';
 interface SortOption {
   value: SortKey;
@@ -30,7 +28,6 @@ export class ContributorListComponent implements OnInit {
   private searchSubject = new BehaviorSubject<string>(''); 
   private sortSubject = new BehaviorSubject<SortKey>('totalContributions'); 
 
-  // ⬇️ NEW: STATE PROPERTIES ⬇️
   loading: boolean = true; 
   error: string | null = null;
   
@@ -46,7 +43,6 @@ export class ContributorListComponent implements OnInit {
   ngOnInit(): void {
     // 1. Fetch the raw data once and apply error handling
     const rawData$ = this.githubApi.getAggregatedContributors().pipe(
-      // The finalize operator runs when the observable completes (success) or errors (failure).
       finalize(() => {
         this.loading = false; 
       }),
@@ -68,15 +64,13 @@ export class ContributorListComponent implements OnInit {
 
     // 2. Create a debounced stream for the search term
     const debouncedSearch$ = this.searchSubject.asObservable().pipe(
-      // ⬇️ ADD THIS LINE ⬇️
-      // Wait for 400ms after the last keystroke before emitting the value
       debounceTime(400) 
     );
 
     // 3. Combine all data streams
     this.contributors$ = combineLatest([
       rawData$,
-      debouncedSearch$, // ⬅️ Use the new debounced stream
+      debouncedSearch$, 
       this.sortSubject.asObservable()
     ]).pipe(
       map(([contributors, searchTerm, sortColumn]) => {
@@ -103,15 +97,13 @@ export class ContributorListComponent implements OnInit {
   // --- Sorting Logic ---
   sortContributors(contributors: Contributor[], column: SortKey): Contributor[] {
     return [...contributors].sort((a, b) => {
-      // Determine the value to compare (using optional chaining for safety)
       const valA = (a as any)[column] ?? (a.details as any)[column];
       const valB = (b as any)[column] ?? (b.details as any)[column];
 
-      // Convert to number for proper sorting if possible
       const numA = typeof valA === 'number' ? valA : String(valA).toLowerCase();
       const numB = typeof valB === 'number' ? valB : String(valB).toLowerCase();
 
-      if (numA < numB) return 1; // Sort descending (most contributions first)
+      if (numA < numB) return 1; 
       if (numA > numB) return -1;
       return 0;
     });
@@ -124,7 +116,6 @@ export class ContributorListComponent implements OnInit {
   }
 
   onSort(sortKey: string) {
-    console.log('Sorting by:', sortKey);
     this.sortSubject.next(sortKey as SortKey);
   }
 }

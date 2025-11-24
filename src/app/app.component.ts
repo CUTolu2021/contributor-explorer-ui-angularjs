@@ -12,15 +12,12 @@ import { Router } from '@angular/router';
 export class AppComponent {
   title = 'contributor-explorer-ui';
 
-  // Inject AuthService and Router
   constructor(
     private authService: AuthService, 
     private router: Router
   ) {}
 
   ngOnInit(): void {
-    // If the user is NOT logged in (no token found in storage),
-    // redirect them to the /login page immediately.
     if (!this.authService.isLoggedIn()) {
       this.router.navigate(['/login']);
     }

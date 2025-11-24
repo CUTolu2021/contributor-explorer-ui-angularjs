@@ -14,14 +14,12 @@ export class GithubApiService {
 
   getAggregatedContributors(): Observable<Contributor[]> {
     const url = `${this.API_BASE_URL}/contributors`;
-    console.log(`Fetching data from: ${url}`);
     
     return this.http.get<Contributor[]>(url);
   }
 
   getContributorByLogin(login: string): Observable<Contributor> {
     const url = `${this.API_BASE_URL}/contributor/${login}`;
-    console.log(`Fetching data from: ${url}`);
     return this.http.get<Contributor>(url);
   }
 

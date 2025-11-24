@@ -16,7 +16,6 @@ import { GithubApiService } from '../../core/github-api.service';
   styleUrl: './contributor-details.component.css'
 })
 export class ContributorDetailsComponent implements OnInit {
-  // This single observable will manage all our state
   state$!: Observable<{ contributor: Contributor | null, loading: boolean, error: string | null }>;
 
   constructor(
@@ -30,7 +29,6 @@ export class ContributorDetailsComponent implements OnInit {
       switchMap(params => {
         const login = params.get('login');
         if (!login) {
-          // Immediately return a state with no loading and no contributor
           return of({ contributor: null, loading: false, error: null });
         }
 
@@ -41,7 +39,6 @@ export class ContributorDetailsComponent implements OnInit {
             console.error(err);
             return of({ contributor: null, loading: false, error: 'Failed to load contributor details.' });
           }),
-          // Before the API call completes, emit a loading state
           startWith({ contributor: null, loading: true, error: null })
         );
       })
