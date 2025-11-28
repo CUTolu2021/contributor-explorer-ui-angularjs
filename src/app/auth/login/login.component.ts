@@ -1,8 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { CommonModule } from '@angular/common';
-import { switchMap, of } from 'rxjs';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
@@ -14,21 +15,15 @@ import { switchMap, of } from 'rxjs';
       <p>Authentication is required to access GitHub data.</p>
       
       <button (click)="onLogin()" [disabled]="loading" class="login-button">
-        {{ loading ? 'Logging In...' : 'Login With Github' }}
+        {{ loading ? 'Logging In...' : 'Get Access Token' }}
       </button>
 
       @if (error) {
         <div class="error-message">
-          {{ errorMessage }}
+        Could not get token. Ensure NestJS backend is running.
         </div>
-      }
-      @if (loading) {
-        <div class="loading-spinner">
-          <div class="loading-circle"></div>
-        </div>
-      }
+      } 
     </div>
-    
   `,
   styles: [`
     .login-container { text-align: center; padding: 50px; }
@@ -44,52 +39,59 @@ import { switchMap, of } from 'rxjs';
     .error-message { color: #DD0031; margin-top: 15px; }
   `]
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   loading = false;
   error = false;
-  errorMessage = '';
+  private destroy$ = new Subject<void>();
 
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-    private route: ActivatedRoute
-  ) { }
+  constructor(private authService: AuthService, private router: Router) { }
 
   ngOnInit(): void {
-    console.log('LoginComponent initialized');
-    this.route.queryParams.subscribe(params => {
-      const token = params['token'];
-      if (token) {
-        this.loading = true;
-        this.authService.validateToken(token).pipe(
-          
-          switchMap(isValid => {
-            if (isValid) {
-              alert('Login successful! Redirecting...');
-              return this.router.navigate(['/contributors']);
-            } else {
-              alert('Error: Invalid token detected. Please sign in again. Avoid using incognito mode for authentication.');
-              this.error = true;
-              this.errorMessage = 'Invalid token. Please try logging in again.';
-              this.loading = false;
-              return of(null);
-            }
-          })
-        ).subscribe(
-          () => this.loading = false, 
-            error => { 
-              this.loading = false;
-              this.error = true;
-              this.errorMessage = 'A network error occurred.';
-            }
-        );
-      }
-    });
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    console.log('Token from URL:', token);
+
+    if (token) {
+      this.loading = true;
+      console.log('Saving token to localStorage...');
+      this.authService.saveToken(token);
+
+      // Validate token asynchronously
+      this.authService.validateToken(token).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: (isValid) => {
+          console.log('Token validation result:', isValid);
+          this.loading = false;
+
+          if (isValid) {
+            console.log('Token validated successfully. Navigating to /contributors');
+            this.router.navigate(['/contributors']);
+          } else {
+            console.error('Token validation failed');
+            localStorage.removeItem('auth_token');
+            this.error = true;
+          }
+        },
+        error: (err) => {
+          console.error('Token validation error:', err);
+          this.loading = false;
+          localStorage.removeItem('auth_token');
+          this.error = true;
+        }
+      });
+    }
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   onLogin(): void {
-
+    this.loading = true;
+    this.error = false;
     this.authService.loginRedirect();
   }
 }
+

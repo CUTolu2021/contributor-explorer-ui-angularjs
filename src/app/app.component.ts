@@ -1,6 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { AuthService } from './core/auth.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -9,17 +8,13 @@ import { Router } from '@angular/router';
   imports: [RouterOutlet],
   template: `<router-outlet></router-outlet>`,
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'contributor-explorer-ui';
 
-  constructor(
-    private authService: AuthService, 
-    private router: Router
-  ) {}
+  constructor(private router: Router) {}
 
   ngOnInit(): void {
-    if (!this.authService.isLoggedIn()) {
-      this.router.navigate(['/login']);
-    }
+    // Navigate to login on app start
+    //this.router.navigate(['/login']);
   }
 }

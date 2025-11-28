@@ -48,20 +48,14 @@ export class AuthService {
   }
 
   validateToken(token: string): Observable<boolean> {
-        this.saveToken(token); 
-        
-        
-        return this.http.get(this.validateUrl).pipe(
-    
-            tap(() => console.log('Validation successful.')),
-            
-            map(() => true),
-            
-            catchError(error => {
-                console.error('Token validation failed:', error);
-                this.logout(); 
-                return of(false); 
-            })
-        );
-    }
+    const headers = { 'Authorization': `Bearer ${token}` };
+    return this.http.get<any>(this.validateUrl, { headers }).pipe(
+      tap(() => console.log('Token validation successful')),
+      map(() => true),
+      catchError(error => {
+        console.error('Token validation failed:', error);
+        return of(false);
+      })
+    );
+  }
 }
