@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/auth.service';
 import { CommonModule } from '@angular/common';
+import { switchMap, of } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -13,13 +14,21 @@ import { CommonModule } from '@angular/common';
       <p>Authentication is required to access GitHub data.</p>
       
       <button (click)="onLogin()" [disabled]="loading" class="login-button">
-        {{ loading ? 'Logging In...' : 'Get Access Token' }}
+        {{ loading ? 'Logging In...' : 'Login With Github' }}
       </button>
 
-      <div *ngIf="error" class="error-message">
-        Could not get token. Ensure NestJS backend is running.
-      </div>
+      @if (error) {
+        <div class="error-message">
+          {{ errorMessage }}
+        </div>
+      }
+      @if (loading) {
+        <div class="loading-spinner">
+          <div class="loading-circle"></div>
+        </div>
+      }
     </div>
+    
   `,
   styles: [`
     .login-container { text-align: center; padding: 50px; }
@@ -35,24 +44,52 @@ import { CommonModule } from '@angular/common';
     .error-message { color: #DD0031; margin-top: 15px; }
   `]
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   loading = false;
   error = false;
+  errorMessage = '';
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) { }
 
-  onLogin(): void {
-    this.loading = true;
-    this.error = false;
-    
-    this.authService.login().subscribe({
-      next: () => {
-        this.router.navigate(['/contributors']); 
-      },
-      error: () => {
-        this.loading = false;
-        this.error = true;
+  ngOnInit(): void {
+    console.log('LoginComponent initialized');
+    this.route.queryParams.subscribe(params => {
+      const token = params['token'];
+      if (token) {
+        this.loading = true;
+        this.authService.validateToken(token).pipe(
+          
+          switchMap(isValid => {
+            if (isValid) {
+              alert('Login successful! Redirecting...');
+              return this.router.navigate(['/contributors']);
+            } else {
+              alert('Error: Invalid token detected. Please sign in again. Avoid using incognito mode for authentication.');
+              this.error = true;
+              this.errorMessage = 'Invalid token. Please try logging in again.';
+              this.loading = false;
+              return of(null);
+            }
+          })
+        ).subscribe(
+          () => this.loading = false, 
+            error => { 
+              this.loading = false;
+              this.error = true;
+              this.errorMessage = 'A network error occurred.';
+            }
+        );
       }
     });
+  }
+
+
+  onLogin(): void {
+
+    this.authService.loginRedirect();
   }
 }
