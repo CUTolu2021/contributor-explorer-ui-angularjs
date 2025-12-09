@@ -10,7 +10,7 @@ export const routes: Routes = [
     { path: 'login', component: LoginComponent },
     { path: 'contributor/:login', component: ContributorDetailsComponent, canActivate: [authGuard]},
     { path: 'contributors', component: ContributorListComponent, canActivate: [authGuard]},
-    { path: 'repo/:name', component: RepositoryDetailsComponent, canActivate: [authGuard]},
-    { path: '**', redirectTo: '' }
+    { path: 'repo/:repoName', component: RepositoryDetailsComponent, canActivate: [authGuard]},
+    { path: '*', pathMatch: 'full', redirectTo: '' }
 ];
 
